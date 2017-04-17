@@ -79,25 +79,25 @@ public class OsmNetworkReader implements MatsimSomeReader {
 
 	private final static Logger log = Logger.getLogger(OsmNetworkReader.class);
 
-	private final static String TAG_LANES = "lanes";
-	private final static String TAG_HIGHWAY = "highway";
-	private final static String TAG_MAXSPEED = "maxspeed";
-	private final static String TAG_JUNCTION = "junction";
-    private final static String TAG_ONEWAY = "oneway";
-    private final static String TAG_ACCESS = "access";
+	protected final static String TAG_LANES = "lanes";
+	protected final static String TAG_HIGHWAY = "highway";
+	protected final static String TAG_MAXSPEED = "maxspeed";
+	protected final static String TAG_JUNCTION = "junction";
+	protected final static String TAG_ONEWAY = "oneway";
+	protected final static String TAG_ACCESS = "access";
 	private final static String[] ALL_TAGS = new String[] {TAG_LANES, TAG_HIGHWAY, TAG_MAXSPEED, TAG_JUNCTION, TAG_ONEWAY, TAG_ACCESS};
 
 	private final Map<Long, OsmNode> nodes = new HashMap<Long, OsmNode>();
 	private final Map<Long, OsmWay> ways = new HashMap<Long, OsmWay>();
-	private final Set<String> unknownHighways = new HashSet<String>();
-	private final Set<String> unknownMaxspeedTags = new HashSet<String>();
-	private final Set<String> unknownLanesTags = new HashSet<String>();
-	private long id = 0;
-	/*package*/ final Map<String, OsmHighwayDefaults> highwayDefaults = new HashMap<String, OsmHighwayDefaults>();
-	private final Network network;
+	protected final Set<String> unknownHighways = new HashSet<String>();
+	protected final Set<String> unknownMaxspeedTags = new HashSet<String>();
+	protected final Set<String> unknownLanesTags = new HashSet<String>();
+	protected long id = 0;
+	protected final Map<String, OsmHighwayDefaults> highwayDefaults = new HashMap<String, OsmHighwayDefaults>();
+	protected final Network network;
 	private final CoordinateTransformation transform;
 	private boolean keepPaths = false;
-	private boolean scaleMaxSpeed = false;
+	protected boolean scaleMaxSpeed = false;
 
 	private boolean slowButLowMemory = false;
 	
@@ -467,7 +467,7 @@ public class OsmNetworkReader implements MatsimSomeReader {
 		this.ways.clear();
 	}
 
-	private void createLink(final Network network, final OsmWay way, final OsmNode fromNode, final OsmNode toNode, 
+	protected void createLink(final Network network, final OsmWay way, final OsmNode fromNode, final OsmNode toNode, 
 			final double length) {
 		String highway = way.tags.get(TAG_HIGHWAY);
 
@@ -645,7 +645,7 @@ public class OsmNetworkReader implements MatsimSomeReader {
 		}
 	}
 
-	private static class OsmNode {
+	protected static class OsmNode {
 		public final long id;
 		public boolean used = false;
 		public int ways = 0;
@@ -657,7 +657,7 @@ public class OsmNetworkReader implements MatsimSomeReader {
 		}
 	}
 
-	private static class OsmWay {
+	protected static class OsmWay {
 		public final long id;
 		public final List<Long> nodes = new ArrayList<Long>(4);
 		public final Map<String, String> tags = new HashMap<String, String>(4);
@@ -668,7 +668,7 @@ public class OsmNetworkReader implements MatsimSomeReader {
 		}
 	}
 
-	private static class OsmHighwayDefaults {
+	protected static class OsmHighwayDefaults {
 
 		public final int hierarchy;
 		public final double lanesPerDirection;
