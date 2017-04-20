@@ -16,6 +16,7 @@ import org.matsim.core.population.io.StreamingPopulationReader;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.geotools.MGC;
+import org.matsim.core.utils.misc.Time;
 import org.matsim.pt.router.TransitActsRemover;
 import playground.gleich.av_bus.FilePaths;
 import playground.jbischoff.utils.JbUtils;
@@ -153,7 +154,7 @@ public class ExtractAgentsInAreaStreamReading {
 				);
 		spr.readFile(inputPopulationPath);
 		System.out.println("ExtractAgentsInArea done");
-		removeTransitActsAndCarRoutes();
+		removeTransitActsCarRoutesDepartureTimesAndActivityLinkIds();
 		new PopulationWriter(outputScenario.getPopulation()).writeV4(outputPopulationPath);
 	}
 	
@@ -236,16 +237,21 @@ public class ExtractAgentsInAreaStreamReading {
 		return false;
 	}
 
-	private void removeTransitActsAndCarRoutes(){
+	private void removeTransitActsCarRoutesDepartureTimesAndActivityLinkIds(){
 		for (Person p : outputScenario.getPopulation().getPersons().values()){
 			Plan plan = p.getSelectedPlan();
 			new TransitActsRemover().run(plan);
 			for (PlanElement pe : plan.getPlanElements()){
 				if (pe instanceof Leg){
 					Leg leg = (Leg) pe;
-					if (leg.getMode().equals("car")){
-						leg.setRoute(null);
-					}
+					leg.setDepartureTime(Time.UNDEFINED_TIME);
+					leg.setTravelTime(Time.UNDEFINED_TIME);
+					leg.setRoute(null);
+				} else if (pe instanceof Activity){
+					Activity act =  (Activity) pe;
+					act.setLinkId(null);
+					act.setFacilityId(null);
+					act.setStartTime(Time.UNDEFINED_TIME);
 				}
 			}
 		}
