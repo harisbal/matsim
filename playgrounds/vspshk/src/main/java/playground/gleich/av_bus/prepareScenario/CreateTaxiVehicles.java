@@ -55,12 +55,12 @@ public class CreateTaxiVehicles {
 	 */
 	public static void main(String[] args) {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-		int numberofVehicles = 50;
+		int numberofVehicles = 25;
 		double operationStartTime = 0.; //t0
 		double operationEndTime = 24*3600.;	//t1
 		int seats = 4;
 		String networkfile = FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_NETWORK_BERLIN__10PCT;
-		String taxisFile = FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_TAXI_VEHICLES_50_BERLIN__10PCT;
+		String taxisFile = FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_TAXI_VEHICLES_25_BERLIN__10PCT;
 		List<Vehicle> vehicles = new ArrayList<>();
 		Random random = MatsimRandom.getLocalInstance();
 		Geometry geometryStudyArea = JbUtils.readShapeFileAndExtractGeometry(FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_STUDY_AREA_SHP, FilePaths.STUDY_AREA_SHP_KEY).get(FilePaths.STUDY_AREA_SHP_ELEMENT);

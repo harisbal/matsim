@@ -28,11 +28,16 @@ public class FilePaths {
 	/** 10pct Scenario Configs and corresponding input files */
 	public final static String PATH_CONFIG_BERLIN__10PCT_NULLFALL = "data/input/Berlin10pct/Nullfall/config.10pct.Nullfall.xml";
 	public final static String PATH_CONFIG_BERLIN__10PCT_TAXI = "data/input/Berlin10pct/Taxi/config.10pct.Taxi.xml";
+	public final static String PATH_CONFIG_BERLIN__10PCT_TAXI_KEEP_LAST_SELECTED_PLAN = "data/input/Berlin10pct/Taxi/config.10pct.Taxi_keepLastSelectedPlan.xml";
+	public final static String PATH_TAXI_VEHICLES_20_BERLIN__10PCT = "data/input/Berlin10pct/Taxi/taxiVehicles.10pct.Taxi_20.xml";
+	public final static String PATH_TAXI_VEHICLES_25_BERLIN__10PCT = "data/input/Berlin10pct/Taxi/taxiVehicles.10pct.Taxi_25.xml";
 	public final static String PATH_TAXI_VEHICLES_50_BERLIN__10PCT = "data/input/Berlin10pct/Taxi/taxiVehicles.10pct.Taxi_50.xml";
 	public final static String PATH_TAXI_VEHICLES_100_BERLIN__10PCT = "data/input/Berlin10pct/Taxi/taxiVehicles.10pct.Taxi_100.xml";
 	public final static String PATH_TAXI_VEHICLES_500_BERLIN__10PCT = "data/input/Berlin10pct/Taxi/taxiVehicles.10pct.Taxi_500.xml";
 	/** 10pct Scenario Output */
 	public final static String PATH_OUTPUT_BERLIN__10PCT_NULLFALL = "data/output/Berlin10pct/Nullfall";
+	public final static String PATH_OUTPUT_BERLIN__10PCT_TAXI_20 = "data/output/Berlin10pct/Taxi_20";
+	public final static String PATH_OUTPUT_BERLIN__10PCT_TAXI_25 = "data/output/Berlin10pct/Taxi_25";
 	public final static String PATH_OUTPUT_BERLIN__10PCT_TAXI_50 = "data/output/Berlin10pct/Taxi_50";
 	public final static String PATH_OUTPUT_BERLIN__10PCT_TAXI_100 = "data/output/Berlin10pct/Taxi_100";
 	public final static String PATH_OUTPUT_BERLIN__10PCT_TAXI_500 = "data/output/Berlin10pct/Taxi_500";
