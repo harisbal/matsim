@@ -198,9 +198,9 @@ public class FixedDistanceBasedVariableAccessModule implements VariableAccessEgr
 			for(String name: geometriesVariableAccessArea.keySet()){
 				if(minXVariableAccessArea.get(name) < coord.getX() && maxXVariableAccessArea.get(name) > coord.getX() &&
 						minYVariableAccessArea.get(name) < coord.getY() && maxYVariableAccessArea.get(name) > coord.getY()){
-//					if(geometriesVariableAccessArea.get(name).contains(MGC.coord2Point(coord))){
+					if(geometriesVariableAccessArea.get(name).contains(MGC.coord2Point(coord))){
 						return true;
-//					}
+					}
 				}
 			}
 			return false;
