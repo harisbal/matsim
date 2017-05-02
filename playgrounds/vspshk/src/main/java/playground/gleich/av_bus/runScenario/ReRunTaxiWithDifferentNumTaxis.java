@@ -1,5 +1,7 @@
 package playground.gleich.av_bus.runScenario;
 
+import java.io.File;
+
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.contrib.av.intermodal.router.VariableAccessTransitRouterModule;
 import org.matsim.contrib.av.intermodal.router.config.VariableAccessConfigGroup;
@@ -7,21 +9,15 @@ import org.matsim.contrib.av.intermodal.router.config.VariableAccessModeConfigGr
 import org.matsim.contrib.dvrp.data.FleetImpl;
 import org.matsim.contrib.dvrp.data.file.VehicleReader;
 import org.matsim.contrib.dvrp.run.DvrpConfigGroup;
-import org.matsim.contrib.otfvis.OTFVisLiveModule;
 import org.matsim.contrib.taxi.run.TaxiConfigConsistencyChecker;
 import org.matsim.contrib.taxi.run.TaxiConfigGroup;
-import org.matsim.contrib.taxi.run.TaxiOptimizerModules;
+import org.matsim.contrib.taxi.run.TaxiModule;
 import org.matsim.contrib.taxi.run.TaxiOutputModule;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.config.groups.StrategyConfigGroup.StrategySettings;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
-import org.matsim.core.network.io.MatsimNetworkReader;
-import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.pt.transitSchedule.TransitScheduleReaderV1;
-import org.matsim.vehicles.VehicleReaderV1;
 
 import playground.gleich.av_bus.FilePaths;
 
@@ -72,13 +68,17 @@ public class ReRunTaxiWithDifferentNumTaxis {
 		config.controler().setWriteEventsInterval(1);	
 		config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
 		
-		TaxiConfigGroup.get(config).setTaxisFile(FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_TAXI_VEHICLES_20_BERLIN__10PCT);
+//		TaxiConfigGroup.get(config).setTaxisFile(FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_TAXI_VEHICLES_20_BERLIN__10PCT);
+		System.out.println((new File(FilePaths.PATH_TAXI_VEHICLES_20_BERLIN__10PCT)).getAbsolutePath());
+		System.out.println((new File("../../../../" + FilePaths.PATH_TAXI_VEHICLES_20_BERLIN__10PCT)).getAbsolutePath());
+		System.out.println((new File(FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_TAXI_VEHICLES_20_BERLIN__10PCT)).getAbsolutePath());
+		TaxiConfigGroup.get(config).setTaxisFile("../../../../" + FilePaths.PATH_TAXI_VEHICLES_20_BERLIN__10PCT);
 		FleetImpl fleet = new FleetImpl();
 		new VehicleReader(scenario.getNetwork(), fleet).readFile(FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_TAXI_VEHICLES_20_BERLIN__10PCT);
 		
 		Controler controler = new Controler(scenario);
 		controler.addOverridingModule(new TaxiOutputModule());
-        controler.addOverridingModule(TaxiOptimizerModules.createDefaultModule(fleet));
+        controler.addOverridingModule(new TaxiModule());
 		controler.addOverridingModule(new VariableAccessTransitRouterModule());
 		
 		controler.run();
