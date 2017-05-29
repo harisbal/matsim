@@ -96,12 +96,12 @@ public class ExtractAgentsInAreaStreamReading {
 			String outputPopulationPath = FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_POPULATION_BERLIN__10PCT_FILTERED;
 			boolean selectAgentsByRoutesThroughArea = true;
 			boolean selectAgentsByActivitiesInArea = true;
-			String outputLinksInAreaCsvPath = FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_BERLIN__10PCT_LINKS_ENCLOSED_IN_AREA;
+			String outputLinksInAreaCsvPath = FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_LINKS_ENCLOSED_IN_AREA_BERLIN__10PCT;
 			String outputLinksInAreaShpPath = FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_SHP_LINKS_ENCLOSED_IN_AREA_BERLIN__10PCT;
 			String outputLinksInAreaShpCoordinateSystem = "DHDN_GK4";
 			extractor = new ExtractAgentsInAreaStreamReading(inputNetworkPath, inputPopulationPath, studyAreaShpPath, 
 					studyAreaShpKey, studyAreaShpElement, outputPopulationPath, selectAgentsByActivitiesInArea, 
-					selectAgentsByRoutesThroughArea, false, outputLinksInAreaCsvPath, 
+					selectAgentsByRoutesThroughArea, true, outputLinksInAreaCsvPath, 
 					outputLinksInAreaShpPath, outputLinksInAreaShpCoordinateSystem);
 
 		}
@@ -209,6 +209,12 @@ public class ExtractAgentsInAreaStreamReading {
 			Links2ESRIShape shp = new Links2ESRIShape(networkEnclosedInStudyArea, outputLinksInAreaShpPath, outputLinksInAreaShpCoordinateSystem);
 			shp.write();
 			CSVWriter linksWriter = new CSVWriter(outputLinksInAreaCsvPath, ",");
+			linksWriter.writeField("id");
+			linksWriter.writeField("fromCoordX");
+			linksWriter.writeField("fromCoordY");
+			linksWriter.writeField("toCoordX");
+			linksWriter.writeField("toCoordY");
+			linksWriter.writeNewLine();
 			for(Id<Link> link : linksInArea){
 				linksWriter.writeField(link.toString());
 				linksWriter.writeField(Double.toString(networkEnclosedInStudyArea.getLinks().get(link).getFromNode().getCoord().getX())); 
