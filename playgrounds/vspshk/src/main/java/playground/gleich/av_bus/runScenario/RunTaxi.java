@@ -60,15 +60,15 @@ public class RunTaxi {
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 		config.controler().setFirstIteration(0);
 		config.controler().setLastIteration(100);
-		config.controler().setOutputDirectory(FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_OUTPUT_BERLIN__10PCT_TAXI_25);
+		config.controler().setOutputDirectory(FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_OUTPUT_BERLIN__10PCT_TAXI_20);
 		config.controler().setWritePlansInterval(10);
 		config.qsim().setEndTime(60*60*60); // [geloest durch maximum speed in transit_vehicles-datei: bei Stunde 50:00:00 immer noch 492 Veh unterwegs (nur pt veh., keine Agenten), alle pt-fahrten stark verspätet, da pünktlicher start, aber niedrigere Geschwindigkeit als im Fahrplan geplant]
 		config.controler().setWriteEventsInterval(10);		
 		config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
 		
-		TaxiConfigGroup.get(config).setTaxisFile("../../../../" + FilePaths.PATH_TAXI_VEHICLES_25_BERLIN__10PCT);
+		TaxiConfigGroup.get(config).setTaxisFile("../../../../" + FilePaths.PATH_TAXI_VEHICLES_20_BERLIN__10PCT);
 		FleetImpl fleet = new FleetImpl();
-		new VehicleReader(scenario.getNetwork(), fleet).readFile(FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_TAXI_VEHICLES_25_BERLIN__10PCT);
+		new VehicleReader(scenario.getNetwork(), fleet).readFile(FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_TAXI_VEHICLES_20_BERLIN__10PCT);
 		
 		Controler controler = new Controler(scenario);
 		controler.addOverridingModule(new TaxiOutputModule());
