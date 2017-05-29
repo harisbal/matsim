@@ -120,7 +120,7 @@ public class FixedDistanceBasedVariableAccessModule implements VariableAccessEgr
 	public Leg getAccessEgressModeAndTraveltime(Person person, Coord coord, Coord toCoord, double time) {
 		double egressDistance = CoordUtils.calcEuclideanDistance(coord, toCoord);
 		// return usual transit walk if the access / egress leg has neither origin nor destination in the area where variable access shall be used
-		String mode = TransportMode.walk;
+		String mode = TransportMode.transit_walk;
 		if(isInVariableAccessArea(coord) && isInVariableAccessArea(toCoord)){
 			mode = getModeForDistance(egressDistance);
 		}
@@ -130,8 +130,16 @@ public class FixedDistanceBasedVariableAccessModule implements VariableAccessEgr
 		Route route = new GenericRouteImpl(startLink.getId(),endLink.getId());
 		leg.setRoute(route);
 		if (this.teleportedModes.get(mode)){
-			double distf = config.plansCalcRoute().getModeRoutingParams().get(mode).getBeelineDistanceFactor();
-			double speed = config.plansCalcRoute().getModeRoutingParams().get(mode).getTeleportedModeSpeed();
+			double distf;
+			double speed;
+			// RoutingParams for transit_walk are not accessible here, but equal those for access_walk
+			if(mode.equals(TransportMode.transit_walk)){
+				distf = config.plansCalcRoute().getModeRoutingParams().get(TransportMode.access_walk).getBeelineDistanceFactor();
+				speed = config.plansCalcRoute().getModeRoutingParams().get(TransportMode.access_walk).getTeleportedModeSpeed();
+			} else {				
+				distf = config.plansCalcRoute().getModeRoutingParams().get(mode).getBeelineDistanceFactor();
+				speed = config.plansCalcRoute().getModeRoutingParams().get(mode).getTeleportedModeSpeed();
+			}
 			double distance = egressDistance*distf;
 			double travelTime = distance / speed;
 			leg.setTravelTime(travelTime);
@@ -141,7 +149,8 @@ public class FixedDistanceBasedVariableAccessModule implements VariableAccessEgr
 						
 		} else {
 			double distance = egressDistance*1.3;
-			double travelTime = distance / 7.25;
+//			Test 20m/s statt 7,5
+			double travelTime = distance / 20;
 			leg.setTravelTime(travelTime);
 			route.setDistance(distance);
 			
