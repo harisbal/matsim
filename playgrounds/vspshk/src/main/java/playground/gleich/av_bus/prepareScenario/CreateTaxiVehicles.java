@@ -55,15 +55,15 @@ public class CreateTaxiVehicles {
 	 */
 	public static void main(String[] args) {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-		int numberofVehicles = 25;
+		int numberofVehicles = 50;
 		double operationStartTime = 0.; //t0
-		double operationEndTime = 24*3600.;	//t1
+		double operationEndTime = 2*24*3600.;	//t1
 		int seats = 4;
 		String networkfile = FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_NETWORK_BERLIN__10PCT;
-		String taxisFile = FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_TAXI_VEHICLES_25_BERLIN__10PCT;
+		String taxisFile = FilePaths.PATH_BASE_DIRECTORY + "data/input/Berlin10pct/DRT/DRTVehicles.10pct.DRT_" + numberofVehicles + "_Cap" + seats + ".xml";// FilePaths.PATH_DRT_VEHICLES_20_CAP1_BERLIN__10PCT;
 		List<Vehicle> vehicles = new ArrayList<>();
 		Random random = MatsimRandom.getLocalInstance();
-		Geometry geometryStudyArea = JbUtils.readShapeFileAndExtractGeometry(FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_STUDY_AREA_SHP, FilePaths.STUDY_AREA_SHP_KEY).get(FilePaths.STUDY_AREA_SHP_ELEMENT);
+		Geometry geometryStudyArea = JbUtils.readShapeFileAndExtractGeometry(FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_AV_OPERATION_AREA_SHP, FilePaths.AV_OPERATION_AREA_SHP_KEY).get(FilePaths.AV_OPERATION_AREA_SHP_ELEMENT);
 		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkfile);
 		List<Id<Link>> linksInArea = new ArrayList<>();
 			for(Link link: scenario.getNetwork().getLinks().values()){
@@ -80,7 +80,7 @@ public class CreateTaxiVehicles {
 			}
 			while (!startLink.getAllowedModes().contains(TransportMode.car));
 			//for multi-modal networks: Only links where cars can ride should be used.
-			Vehicle v = new VehicleImpl(Id.create("taxi"+i, Vehicle.class), startLink, seats, operationStartTime, operationEndTime);
+			Vehicle v = new VehicleImpl(Id.create("DRT"+i, Vehicle.class), startLink, seats, operationStartTime, operationEndTime);
 		    vehicles.add(v);    
 		}
 		new VehicleWriter(vehicles).write(taxisFile);
