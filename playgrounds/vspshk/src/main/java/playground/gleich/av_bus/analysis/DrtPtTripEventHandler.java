@@ -3,7 +3,7 @@
  *                                                                         *
  * *********************************************************************** *
  *                                                                         *
- * copyright       : (C) 2015 by the members listed in the COPYING,        *
+ * copyright       : (C) 2017 by the members listed in the COPYING,        *
  *                   LICENSE and WARRANTY file.                            *
  * email           : info at matsim dot org                                *
  *                                                                         *
@@ -27,11 +27,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.events.ActivityEndEvent;
 import org.matsim.api.core.v01.events.ActivityStartEvent;
 import org.matsim.api.core.v01.events.LinkEnterEvent;
 import org.matsim.api.core.v01.events.PersonArrivalEvent;
 import org.matsim.api.core.v01.events.PersonDepartureEvent;
 import org.matsim.api.core.v01.events.PersonEntersVehicleEvent;
+import org.matsim.api.core.v01.events.handler.ActivityEndEventHandler;
 import org.matsim.api.core.v01.events.handler.ActivityStartEventHandler;
 import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonArrivalEventHandler;
@@ -49,10 +51,14 @@ import org.matsim.vehicles.Vehicle;
 /**
  * @author gleich
  *
+ * @param network
+ * @param monitoredModes : All trips to be monitored have to consist only of legs of these modes
+ * @param monitoredStartAndEndLinks : only trips which start or end on one these links will be monitored.
+ * Set to null if you want to have all trips from all origins and to all destinations.
  */
-public class DrtPtTripEventHandler implements ActivityStartEventHandler,
-PersonDepartureEventHandler, PersonArrivalEventHandler, 
-PersonEntersVehicleEventHandler, LinkEnterEventHandler, TeleportationArrivalEventHandler {
+public class DrtPtTripEventHandler implements ActivityStartEventHandler, ActivityEndEventHandler,
+PersonDepartureEventHandler, PersonArrivalEventHandler, PersonEntersVehicleEventHandler, 
+LinkEnterEventHandler, TeleportationArrivalEventHandler {
 	
 //	private Set<Id<Person>> agentsOnMonitoredTrip = new HashSet<>(); -> agent2CurrentTripStartLink.contains()
 //	private Map<Id<Person>, Boolean> agentHasDrtLeg = new HashMap<>();
@@ -61,6 +67,7 @@ PersonEntersVehicleEventHandler, LinkEnterEventHandler, TeleportationArrivalEven
 	private Map<Id<Person>, List<ExperiencedTrip>> person2ExperiencedTrips = new HashMap<>();
 	
 //	private Map<Id<Person>, Coord> agent2CurrentTripStartCoord = new HashMap<>();
+	private Map<Id<Person>, String> agent2CurrentTripActivityBefore = new HashMap<>();
 	private Map<Id<Person>, Id<Link>> agent2CurrentTripStartLink = new HashMap<>();
 	private Map<Id<Person>, Double> agent2CurrentTripStartTime = new HashMap<>();
 	private Map<Id<Person>, List<ExperiencedLeg>> agent2CurrentTripExperiencedLegs = new HashMap<>();
@@ -75,9 +82,15 @@ PersonEntersVehicleEventHandler, LinkEnterEventHandler, TeleportationArrivalEven
 	
 	private Map<Id<Vehicle>, Double> monitoredVeh2toMonitoredDistance = new HashMap<>();
 	private Set<String> monitoredModes = new HashSet<>();
-	private Set<String> monitoredStartAndEndLinks = new HashSet<>();
+	private Set<Id<Link>> monitoredStartAndEndLinks = new HashSet<>(); // set to null if all links are to be monitored
 	
-	DrtPtTripEventHandler(Network network, Set<String> monitoredModes, Set<String> monitoredStartAndEndLinks){
+	/**
+	 * 
+	 * @param network
+	 * @param monitoredModes: All trips to be monitored have to consist only of legs of these modes
+	 * @param monitoredStartAndEndLinks: only trips which start or end on one these links will be monitored. Set to null if you want to have all trips from all origins and to all destinations
+	 */
+	public DrtPtTripEventHandler(Network network, Set<String> monitoredModes, Set<Id<Link>> monitoredStartAndEndLinks){
 		this.network = network;
 		this.monitoredModes = monitoredModes; // pt, transit_walk, drt: walk eigentlich nicht, aber in FixedDistanceBased falsch als walk statt transit_walk gesetzt
 		this.monitoredStartAndEndLinks = monitoredStartAndEndLinks;
@@ -98,9 +111,26 @@ PersonEntersVehicleEventHandler, LinkEnterEventHandler, TeleportationArrivalEven
 		}
 	}
 
+	/*
+	 * Save the activity type of the last activity before the trip. We cannot know yet if this is a trip to be monitored or not
+	 * (leg mode and arrival link are unknown), so save this for all agents.
+	 */
+	@Override
+	public void handleEvent(ActivityEndEvent event) {
+		if(!event.getActType().equals("pt interaction")){
+			agent2CurrentTripActivityBefore.put(event.getPersonId(), event.getActType());			
+		}
+	}
+	
 	// Detect start of a leg (and possibly the start of a trip)
 	@Override
 	public void handleEvent(PersonDepartureEvent event) {
+		/* 
+		 * if a trip includes a leg of a mode not contained in monitoredModes, this lead to NullPointerExceptions at 
+		 * handleEvent(PersonArrivalEvent event). This can be avoided by removing the following check of the leg mode,
+		 * however in this case all legs of all modes will be saved and later while saving ExperiencedTrips in
+		 * handleEvent(ActivityStartEvent event) those trips not containing would have to be filtered out.
+		 */
 		if(!monitoredModes.contains(event.getLegMode())) {
 			return;
 		} else {
@@ -151,7 +181,8 @@ PersonEntersVehicleEventHandler, LinkEnterEventHandler, TeleportationArrivalEven
 			double distance;
 			// e.g. pt leg
 			if(agent2CurrentLegEnterVehicleTime.containsKey(event.getPersonId())) {
-				waitTime = agent2CurrentLegEnterVehicleTime.get(event.getPersonId()) - agent2CurrentLegStartTime.get(event.getPersonId());
+				waitTime = agent2CurrentLegEnterVehicleTime.get(event.getPersonId()) -
+						agent2CurrentLegStartTime.get(event.getPersonId());
 				inVehicleTime = event.getTime() - agent2CurrentLegEnterVehicleTime.get(event.getPersonId());
 				distance = monitoredVeh2toMonitoredDistance.get(agent2CurrentLegVehicle.get(event.getPersonId())) - 
 						agent2CurrentLegDistanceOffsetAtEnteringVehicle.get(event.getPersonId());
@@ -175,28 +206,54 @@ PersonEntersVehicleEventHandler, LinkEnterEventHandler, TeleportationArrivalEven
 			agent2CurrentTeleportDistance.remove(event.getPersonId());
 		}	
 	}
-
+//Test
+	int tripCounter = 0;
+	
 	// Detect end of a trip
 	@Override
 	public void handleEvent(ActivityStartEvent event) {
 		if(agent2CurrentTripStartLink.containsKey(event.getPersonId())){
 			// Check if this a real activity or whether the trip will continue with another leg after an "pt interaction"
-			if(event.getActType().equals("pt interaction")){				
+			if(!event.getActType().equals("pt interaction")){				
 				//Check if trip starts or ends in the monitored area, that means on the monitored start and end links
-				if(monitoredStartAndEndLinks.contains(event.getLinkId()) ||
+				//monitoredStartAndEndLinks=null -> all links are to be monitored
+				if(monitoredStartAndEndLinks == null || 
+						monitoredStartAndEndLinks.contains(event.getLinkId()) ||
 						monitoredStartAndEndLinks.contains(agent2CurrentTripStartLink.get(event.getPersonId()))){
 					if(!person2ExperiencedTrips.containsKey(event.getPersonId())){
 						person2ExperiencedTrips.put(event.getPersonId(), new ArrayList<>());
 					}
 					// Save ExperiencedTrip and remove temporary data
 					person2ExperiencedTrips.get(event.getPersonId()).add(new ExperiencedTrip(
-							event.getPersonId(), agent2CurrentTripStartLink.get(event.getPersonId()), event.getLinkId(),
-							agent2CurrentTripStartTime.get(event.getPersonId()), event.getTime(), 
-							agent2CurrentTripExperiencedLegs.get(event.getPersonId())));
-					agent2CurrentTripStartTime.remove(event.getPersonId());
-					agent2CurrentTripStartLink.remove(event.getPersonId());
+							event.getPersonId(), agent2CurrentTripActivityBefore.get(event.getPersonId()), event.getActType(),
+							agent2CurrentTripStartLink.get(event.getPersonId()), event.getLinkId(),
+							agent2CurrentTripStartTime.get(event.getPersonId()), event.getTime(),
+							/* events are read in chronological order -> trips are found in chronological order
+							 * -> save chronological tripNumber for identification of trips 
+							 */
+							person2ExperiencedTrips.get(event.getPersonId()).size() + 1,
+							agent2CurrentTripExperiencedLegs.get(event.getPersonId()), monitoredModes));
+					tripCounter++;
+					System.out.println("ExperiencedTrip " + tripCounter);
 				}
+				agent2CurrentTripStartTime.remove(event.getPersonId());
+				agent2CurrentTripStartLink.remove(event.getPersonId());
+				agent2CurrentTripExperiencedLegs.remove(event.getPersonId());
 			}
 		}
 	}
+
+	// Getter
+	public Map<Id<Person>, List<ExperiencedTrip>> getPerson2ExperiencedTrips() {
+		return person2ExperiencedTrips;
+	}
+
+	public Set<String> getMonitoredModes() {
+		return monitoredModes;
+	}
+
+	public Set<Id<Link>> getMonitoredStartAndEndLinks() {
+		return monitoredStartAndEndLinks;
+	}
+
 }

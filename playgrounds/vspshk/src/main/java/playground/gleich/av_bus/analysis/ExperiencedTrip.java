@@ -3,7 +3,7 @@
  *                                                                         *
  * *********************************************************************** *
  *                                                                         *
- * copyright       : (C) 2015 by the members listed in the COPYING,        *
+ * copyright       : (C) 2017 by the members listed in the COPYING,        *
  *                   LICENSE and WARRANTY file.                            *
  * email           : info at matsim dot org                                *
  *                                                                         *
@@ -19,12 +19,11 @@
 
 package playground.gleich.av_bus.analysis;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Person;
@@ -35,21 +34,28 @@ import org.matsim.api.core.v01.population.Person;
  */
 public class ExperiencedTrip {
 	private final Id<Person> agent;
+	private final String activityBefore;
+	private final String activityAfter;
 //	private final Coord from;
 //	private final Coord to;
 	private final Id<Link> fromLinkId;
 	private final Id<Link> toLinkId;
 	private final double startTime;
 	private final double endTime;
+	private final int tripNumber;
+	private final Id<ExperiencedTrip> id;
 	private final List<ExperiencedLeg> legs;
 	
-	private Map<String, Double> mode2inVehicleOrMoveTime = new HashMap<>();
-	private Map<String, Double> mode2inVehicleOrMoveDistance = new HashMap<>();
+	private Map<String, Double> mode2inVehicleTime = new HashMap<>();
+	private Map<String, Double> mode2distance = new HashMap<>();
 	private Map<String, Double> mode2waitTime = new HashMap<>();
+	private Map<String, Integer> mode2numberOfLegs = new HashMap<>();
 	
 	// Coords unavailable in events
 	/**
 	 * @param agent
+	 * @param activityBefore
+	 * @param activityAfter
 	 * @param from
 	 * @param to
 	 * @param fromLink
@@ -58,38 +64,49 @@ public class ExperiencedTrip {
 	 * @param endTime
 	 * @param includesDrt
 	 */
-	ExperiencedTrip(Id<Person> agent, 
+	ExperiencedTrip(Id<Person> agent, String activityBefore, String activityAfter,
 //			Coord from, Coord to, 
 			Id<Link> fromLink, Id<Link> toLink, double startTime,
-			double endTime, List<ExperiencedLeg> legs) {
+			double endTime, int tripNumber, List<ExperiencedLeg> legs, Set<String> monitoredModes) {
 		this.agent = agent;
+		this.activityBefore = activityBefore;
+		this.activityAfter = activityAfter;
 //		this.from = from;
 //		this.to = to;
 		this.fromLinkId = fromLink;
 		this.toLinkId = toLink;
 		this.startTime = startTime;
 		this.endTime = endTime;
+		this.tripNumber = tripNumber;
 		this.legs = legs;
-		calcSumsOverAllLegs();
+		this.id = Id.create(agent + "_trip" + tripNumber + "_from_" + fromLinkId + "_to_" + toLinkId, 
+				ExperiencedTrip.class);
+		calcSumsOverAllLegs(monitoredModes);
 	}
-	
-	private void calcSumsOverAllLegs(){
+
+	private void calcSumsOverAllLegs(Set<String> monitoredModes){
+		for(String mode: monitoredModes){
+			mode2inVehicleTime.put(mode, 0.0);
+			mode2distance.put(mode, 0.0);
+			mode2waitTime.put(mode, 0.0);
+			mode2numberOfLegs.put(mode, 0);
+		}
+		mode2inVehicleTime.put("Other", 0.0);
+		mode2distance.put("Other", 0.0);
+		mode2waitTime.put("Other", 0.0);
+		mode2numberOfLegs.put("Other", 0);
 		for(ExperiencedLeg leg: legs){
 			String mode = leg.getMode();
-			if(mode2inVehicleOrMoveTime.containsKey(mode)){
-				mode2inVehicleOrMoveTime.put(mode, mode2inVehicleOrMoveTime.get(mode) + leg.getInVehicleTime());	
-			} else {
-				mode2inVehicleOrMoveTime.put(mode, leg.getInVehicleTime());	
-			}
-			if(mode2inVehicleOrMoveDistance.containsKey(mode)){
-				mode2inVehicleOrMoveDistance.put(mode, mode2inVehicleOrMoveDistance.get(mode) + leg.getDistance());	
-			} else {
-				mode2inVehicleOrMoveDistance.put(mode, leg.getDistance());	
-			}
-			if(mode2waitTime.containsKey(mode)){
+			if(monitoredModes.contains(mode)){
+				mode2inVehicleTime.put(mode, mode2inVehicleTime.get(mode) + leg.getInVehicleTime());
+				mode2distance.put(mode, mode2distance.get(mode) + leg.getDistance());	
 				mode2waitTime.put(mode, mode2waitTime.get(mode) + leg.getWaitTime());	
+				mode2numberOfLegs.put(mode, mode2numberOfLegs.get(mode) + 1);
 			} else {
-				mode2waitTime.put(mode, leg.getWaitTime());	
+				mode2inVehicleTime.put("Other", mode2inVehicleTime.get("Other") + leg.getInVehicleTime());
+				mode2distance.put("Other", mode2distance.get("Other") + leg.getDistance());	
+				mode2waitTime.put("Other", mode2waitTime.get("Other") + leg.getWaitTime());	
+				mode2numberOfLegs.put("Other", mode2numberOfLegs.get("Other") + 1);
 			}
 		}
 	}
@@ -99,18 +116,29 @@ public class ExperiencedTrip {
 	}
 	//Getter
 	Map<String, Double> getMode2inVehicleOrMoveTime() {
-		return mode2inVehicleOrMoveTime;
+		return mode2inVehicleTime;
 	}
 	
 	Map<String, Double> getMode2inVehicleOrMoveDistance() {
-		return mode2inVehicleOrMoveDistance;
+		return mode2distance;
 	}
 	
 	Map<String, Double> getMode2waitTime() {
 		return mode2waitTime;
 	}
+	Map<String, Integer> getMode2numberOfLegs() {
+		return mode2numberOfLegs;
+	}
+
 	Id<Person> getAgent() {
 		return agent;
+	}
+	String getActivityBefore() {
+		return activityBefore;
+	}
+	
+	String getActivityAfter() {
+		return activityAfter;
 	}
 //	Coord getFrom() {
 //		return from;
@@ -130,6 +158,14 @@ public class ExperiencedTrip {
 	double getEndTime() {
 		return endTime;
 	}
+	int getTripNumber() {
+		return tripNumber;
+	}
+
+	Id<ExperiencedTrip> getId() {
+		return id;
+	}
+
 	List<ExperiencedLeg> getLegs() {
 		return legs;
 	}
