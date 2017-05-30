@@ -20,9 +20,18 @@
 package playground.agarwalamit.opdyts.equil;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Set;
-
+import java.util.List;
+import floetteroed.opdyts.DecisionVariableRandomizer;
+import floetteroed.opdyts.ObjectiveFunction;
+import floetteroed.opdyts.convergencecriteria.ConvergenceCriterion;
+import floetteroed.opdyts.convergencecriteria.FixedIterationNumberConvergenceCriterion;
+import floetteroed.opdyts.searchalgorithms.RandomSearch;
+import floetteroed.opdyts.searchalgorithms.SelfTuner;
+import opdytsintegration.MATSimSimulator2;
+import opdytsintegration.MATSimStateFactoryImpl;
+import opdytsintegration.utils.TimeDiscretization;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
@@ -42,23 +51,7 @@ import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.functions.ScoringParametersForPerson;
 import org.matsim.core.utils.io.IOUtils;
-
-import floetteroed.opdyts.DecisionVariableRandomizer;
-import floetteroed.opdyts.ObjectiveFunction;
-import floetteroed.opdyts.convergencecriteria.ConvergenceCriterion;
-import floetteroed.opdyts.convergencecriteria.FixedIterationNumberConvergenceCriterion;
-import floetteroed.opdyts.searchalgorithms.RandomSearch;
-import floetteroed.opdyts.searchalgorithms.SelfTuner;
-import opdytsintegration.MATSimSimulator;
-import opdytsintegration.MATSimStateFactoryImpl;
-import opdytsintegration.utils.TimeDiscretization;
-import playground.agarwalamit.opdyts.DistanceDistribution;
-import playground.agarwalamit.opdyts.ModeChoiceDecisionVariable;
-import playground.agarwalamit.opdyts.ModeChoiceObjectiveFunction;
-import playground.agarwalamit.opdyts.ModeChoiceRandomizer;
-import playground.agarwalamit.opdyts.OpdytsModalStatsControlerListener;
-import playground.agarwalamit.opdyts.OpdytsScenario;
-import playground.agarwalamit.opdyts.RandomizedUtilityParametersChoser;
+import playground.agarwalamit.opdyts.*;
 import playground.agarwalamit.utils.FileUtils;
 import playground.kai.usecases.opdytsintegration.modechoice.EveryIterationScoringParameters;
 
@@ -86,9 +79,7 @@ public class MatsimOpdytsEquilMixedTrafficIntegration {
 			OUT_DIR = args[3]+"/equil_car,bicycle_holes_variance"+randomVariance+"_"+iterationsToConvergence+"its/";
 		}
 
-		Set<String> modes2consider = new HashSet<>();
-		modes2consider.add("car");
-		modes2consider.add("bicycle");
+		List<String> modes2consider = Arrays.asList("car","bicycle");
 
 		//see an example with detailed explanations -- package opdytsintegration.example.networkparameters.RunNetworkParameters 
 		Config config = ConfigUtils.loadConfig(EQUIL_DIR+"/config.xml");
@@ -188,7 +179,7 @@ public class MatsimOpdytsEquilMixedTrafficIntegration {
 		OpdytsModalStatsControlerListener stasControlerListner = new OpdytsModalStatsControlerListener(modes2consider,distanceDistribution);
 
 		// following is the  entry point to start a matsim controler together with opdyts
-		MATSimSimulator<ModeChoiceDecisionVariable> simulator = new MATSimSimulator<>(new MATSimStateFactoryImpl<>(), scenario, timeDiscretization);
+		MATSimSimulator2<ModeChoiceDecisionVariable> simulator = new MATSimSimulator2<>(new MATSimStateFactoryImpl<>(), scenario, timeDiscretization, new HashSet<>(modes2consider));
 		simulator.addOverridingModule(new AbstractModule() {
 
 			@Override
@@ -254,7 +245,7 @@ public class MatsimOpdytsEquilMixedTrafficIntegration {
 		// remove the unused iterations
 		for (int index =0; index < maxIterations; index++) {
 			String dir2remove = OUT_DIR+"_"+index+"/ITERS/";
-				IOUtils.deleteDirectory(new File(dir2remove));
+			IOUtils.deleteDirectoryRecursively(new File(dir2remove).toPath());
 		}
 	}
 }

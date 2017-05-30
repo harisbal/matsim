@@ -61,13 +61,14 @@ public class DefaultDrtOptimizerProvider implements Provider<DrtOptimizer> {
 
 	@Override
 	public DrtOptimizer get() {
-		DrtSchedulerParams schedulerParams = new DrtSchedulerParams(60);
+		DrtSchedulerParams schedulerParams = new DrtSchedulerParams(drtCfg.getStopDuration());
 		DrtScheduler scheduler = new DrtScheduler(drtCfg, fleet, qSim.getSimTimer(), schedulerParams, travelTime);
 
 		TravelDisutility travelDisutility = travelDisutilityFactory == null ? new TimeAsTravelDisutility(travelTime)
 				: travelDisutilityFactory.createTravelDisutility(travelTime);
+
 		DrtOptimizerContext optimContext = new DrtOptimizerContext(fleet, network, qSim.getSimTimer(), travelTime,
-				travelDisutility, scheduler);
+				travelDisutility, scheduler, qSim.getEventsManager());
 
 		return drtCfg.getIdleVehiclesReturnToDepots() ? new InsertionDrtOptimizerWithDepots(optimContext, drtCfg)
 				: new InsertionDrtOptimizer(optimContext, drtCfg);
