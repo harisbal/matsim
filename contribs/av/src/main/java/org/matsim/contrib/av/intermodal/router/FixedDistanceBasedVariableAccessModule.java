@@ -22,12 +22,15 @@
  */
 package org.matsim.contrib.av.intermodal.router;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.matsim.api.core.v01.Coord;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -67,6 +70,8 @@ public class FixedDistanceBasedVariableAccessModule implements VariableAccessEgr
 	private Map<String, Double> maxXVariableAccessArea = new HashMap<>();
 	private Map<String, Double> maxYVariableAccessArea = new HashMap<>();
 	private Map<String, Geometry> geometriesVariableAccessArea = new HashMap<>();
+	 // surcharge only applied to trips starting or ending in the variable access area
+	private Map<Coord, Double> discouragedTransitStopCoord2TimeSurcharge = new HashMap<>();
 	
 	private final Network carnetwork;
 	private final Config config;
@@ -89,6 +94,44 @@ public class FixedDistanceBasedVariableAccessModule implements VariableAccessEgr
 			}
 		}
 		teleportedModes.put(TransportMode.transit_walk, true);
+		
+		// for av scenario Heiligensee, Konradshoehe
+		// S25 service every 20 min -> 10 min mean wait time
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4584548.0, 5831850.0), 10*60.); // S Schulzendorf
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4583339.0, 5833154.0), 10*60.); // S Heiligensee
+		// Bus lines across river Havel or Tegeler See -> inaccessible
+		// Bus 136
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4581591.0, 5832750.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4581669.0, 5831774.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4581497.6418, 5831745.5566), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4581429.0, 5831400.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4581312.2374, 5831242.7166), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4581260.0, 5830890.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4581377.0, 5830535.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4581547.0, 5829967.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4581923.0, 5828614.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4582131.0, 5827991.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4582238.0, 5827622.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4582314.0, 5827362.0), 20*60.); //ferry to Tegelort
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4582293.0, 5827026.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4582144.0, 5826847.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4582187.0, 5826715.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4582100.0, 5826487.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4582544.0, 5826421.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4582070.4177, 5826076.2695), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4582036.0171, 5825885.0392), 10*60*60.);
+		// Bus 139, 236
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4582332.0, 5826025.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4582770.0, 5825930.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4582760.0, 5825520.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4583330.0, 5825680.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4583240.0, 5825340.0), 10*60*60.);
+		// Bus 133
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4585180.0, 5826171.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4585408.0, 5826845.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4585571.0, 5827345.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4585857.0, 5827693.0), 10*60*60.);
+		discouragedTransitStopCoord2TimeSurcharge.put(new Coord(4586403.0, 5827736.0), 10*60*60.);
 	}
 	/**
 	 * 
@@ -121,7 +164,17 @@ public class FixedDistanceBasedVariableAccessModule implements VariableAccessEgr
 		double egressDistance = CoordUtils.calcEuclideanDistance(coord, toCoord);
 		// return usual transit walk if the access / egress leg has neither origin nor destination in the area where variable access shall be used
 		String mode = TransportMode.transit_walk;
-		if(isInVariableAccessArea(coord) && isInVariableAccessArea(toCoord)){
+		double discouragedTransitStopTimeSurcharge = 0;
+		boolean isStartInVariableAccessArea = isInVariableAccessArea(coord);
+		boolean isEndInVariableAccessArea = isInVariableAccessArea(toCoord);
+		if (isStartInVariableAccessArea || isEndInVariableAccessArea) {
+			if (discouragedTransitStopCoord2TimeSurcharge.containsKey(coord)) {
+				discouragedTransitStopTimeSurcharge = discouragedTransitStopCoord2TimeSurcharge.get(coord);
+			} else if(discouragedTransitStopCoord2TimeSurcharge.containsKey(toCoord)) {
+				discouragedTransitStopTimeSurcharge = discouragedTransitStopCoord2TimeSurcharge.get(toCoord);
+			}
+		}
+		if (isStartInVariableAccessArea && isEndInVariableAccessArea){
 			mode = getModeForDistance(egressDistance);
 		}
 		Leg leg = PopulationUtils.createLeg(mode);
@@ -141,7 +194,7 @@ public class FixedDistanceBasedVariableAccessModule implements VariableAccessEgr
 				speed = config.plansCalcRoute().getModeRoutingParams().get(mode).getTeleportedModeSpeed();
 			}
 			double distance = egressDistance*distf;
-			double travelTime = distance / speed;
+			double travelTime = distance / speed + discouragedTransitStopTimeSurcharge;
 			leg.setTravelTime(travelTime);
 			route.setDistance(distance);
 			leg.setDepartureTime(time);
@@ -149,8 +202,7 @@ public class FixedDistanceBasedVariableAccessModule implements VariableAccessEgr
 						
 		} else {
 			double distance = egressDistance*1.3;
-//			Test 20m/s statt 7,5
-			double travelTime = distance / 20;
+			double travelTime = distance / 7.5 + discouragedTransitStopTimeSurcharge;
 			leg.setTravelTime(travelTime);
 			route.setDistance(distance);
 			
