@@ -51,7 +51,7 @@ public class RunDRT {
 		}
 		{
 			VariableAccessModeConfigGroup walk = new VariableAccessModeConfigGroup();
-			walk.setDistance(1000);
+			walk.setDistance(300);
 			walk.setTeleported(true);
 			walk.setMode(TransportMode.transit_walk);
 			vacfg.setAccessModeGroup(walk);
@@ -63,10 +63,10 @@ public class RunDRT {
 //		String outputDirectory = FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_OUTPUT_BERLIN__10PCT
 		
 		// ScenarioUtils.loadScenario(config) searches files starting at the directory where the config is located
-		config.network().setInputFile("../../../../" + FilePaths.PATH_NETWORK_BERLIN__10PCT);
+		config.network().setInputFile("../../../../" + FilePaths.PATH_NETWORK_BERLIN__10PCT_DRT_ACCESS_LOOPS);
 		config.plans().setInputFile("../../../../" + FilePaths.PATH_POPULATION_BERLIN__10PCT_FILTERED);
 //		config.plans().setInputFile("../../../../" + "data/input/Berlin10pct/mod/population.10pct.filtered.6Agents.xml");
-//		config.plans().setInputFile("../../../../" + "data/output/Berlin10pct/DRT_20_Cap1/ITERS/it.0/0.plans.xml");
+//		config.plans().setInputFile("../../../../" + "data/output/Berlin10pct/drt_300m_routing_drt_20ms/DRT_50_Cap4/ITERS/it.0/0.plans.xml.gz");
 		config.transit().setVehiclesFile("../../../../" + FilePaths.PATH_TRANSIT_VEHICLES_BERLIN__10PCT);
 		config.transit().setTransitScheduleFile("../../../../" + FilePaths.PATH_TRANSIT_SCHEDULE_BERLIN__10PCT_WITHOUT_BUSES_IN_STUDY_AREA);
 		config.transitRouter().setSearchRadius(15000);
