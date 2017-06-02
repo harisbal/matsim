@@ -16,6 +16,7 @@ public class FilePaths {
 	/** 10pct Scenario Modified */
 	public final static String PATH_NETWORK_BERLIN__10PCT_DRT_ACCESS_LOOPS = "data/input/Berlin10pct/mod/network.10pct.drtAccessLoops.xml";
 	public final static String PATH_POPULATION_BERLIN__10PCT_FILTERED = "data/input/Berlin10pct/mod/population.10pct.filtered.xml.gz";
+	public final static String PATH_POPULATION_BERLIN__10PCT_FILTERED_1000 = "data/input/Berlin10pct/mod/population.10pct.filtered_about1000.xml";
 	public final static String PATH_LINKS_ENCLOSED_IN_AREA_BERLIN__10PCT = "data/input/Berlin10pct/mod/linksInArea.csv";
 	public final static String PATH_SHP_LINKS_ENCLOSED_IN_AREA_BERLIN__10PCT = "data/input/Berlin10pct/mod/linksInArea.shp";
 	// base transit schedules are identical (Berlin10pct/transitSchedule.xml.gz == Berlin100pct/transitSchedule.xml.gz)
