@@ -49,6 +49,7 @@ public class ExperiencedTrip {
 	private Map<String, Double> mode2inVehicleTime = new HashMap<>();
 	private Map<String, Double> mode2distance = new HashMap<>();
 	private Map<String, Double> mode2waitTime = new HashMap<>();
+	private Map<String, Double> mode2maxPerLegWaitTime = new HashMap<>();
 	private Map<String, Integer> mode2numberOfLegs = new HashMap<>();
 	
 	// Coords unavailable in events
@@ -89,11 +90,13 @@ public class ExperiencedTrip {
 			mode2inVehicleTime.put(mode, 0.0);
 			mode2distance.put(mode, 0.0);
 			mode2waitTime.put(mode, 0.0);
+			mode2maxPerLegWaitTime.put(mode, 0.0);
 			mode2numberOfLegs.put(mode, 0);
 		}
 		mode2inVehicleTime.put("Other", 0.0);
 		mode2distance.put("Other", 0.0);
 		mode2waitTime.put("Other", 0.0);
+		mode2maxPerLegWaitTime.put("Other", 0.0);
 		mode2numberOfLegs.put("Other", 0);
 		for(ExperiencedLeg leg: legs){
 			String mode = leg.getMode();
@@ -102,11 +105,17 @@ public class ExperiencedTrip {
 				mode2distance.put(mode, mode2distance.get(mode) + leg.getDistance());	
 				mode2waitTime.put(mode, mode2waitTime.get(mode) + leg.getWaitTime());	
 				mode2numberOfLegs.put(mode, mode2numberOfLegs.get(mode) + 1);
+				if(mode2maxPerLegWaitTime.get(mode) < leg.getWaitTime()) {
+					mode2maxPerLegWaitTime.put(mode, leg.getWaitTime());
+				}
 			} else {
 				mode2inVehicleTime.put("Other", mode2inVehicleTime.get("Other") + leg.getInVehicleTime());
 				mode2distance.put("Other", mode2distance.get("Other") + leg.getDistance());	
 				mode2waitTime.put("Other", mode2waitTime.get("Other") + leg.getWaitTime());	
 				mode2numberOfLegs.put("Other", mode2numberOfLegs.get("Other") + 1);
+				if(mode2maxPerLegWaitTime.get("Other") < leg.getWaitTime()) {
+					mode2maxPerLegWaitTime.put("Other", leg.getWaitTime());
+				}
 			}
 		}
 	}
@@ -126,6 +135,11 @@ public class ExperiencedTrip {
 	Map<String, Double> getMode2waitTime() {
 		return mode2waitTime;
 	}
+	
+	Map<String, Double> getMode2maxPerLegWaitTime() {
+		return mode2maxPerLegWaitTime;
+	}
+	
 	Map<String, Integer> getMode2numberOfLegs() {
 		return mode2numberOfLegs;
 	}

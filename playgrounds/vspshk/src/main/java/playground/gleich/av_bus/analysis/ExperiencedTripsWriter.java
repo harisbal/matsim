@@ -59,11 +59,13 @@ public class ExperiencedTripsWriter {
 			bw.write(sep + mode + ".InVehicleTime");
 			bw.write(sep + mode + ".Distance");
 			bw.write(sep + mode + ".WaitTime");
+			bw.write(sep + mode + ".maxPerLegWaitTime");
 			bw.write(sep + mode + ".NumberOfLegs");
 		}
 		bw.write(sep + "Other" + ".InVehicleTime");
 		bw.write(sep + "Other" + ".Distance");
 		bw.write(sep + "Other" + ".WaitTime");
+		bw.write(sep + "Other" + ".maxPerLegWaitTime");
 		bw.write(sep + "Other" + ".NumberOfLegs");
 		bw.newLine();
 	}
@@ -88,7 +90,9 @@ public class ExperiencedTripsWriter {
 				try{
 					bw.write(sep + trip.getMode2inVehicleOrMoveTime().get(mode) + sep + 
 							trip.getMode2inVehicleOrMoveDistance().get(mode) + sep +
-							trip.getMode2waitTime().get(mode) + sep + trip.getMode2numberOfLegs().get(mode));
+							trip.getMode2waitTime().get(mode) + sep + 
+							trip.getMode2maxPerLegWaitTime().get(mode) + sep +
+							trip.getMode2numberOfLegs().get(mode));
 				} catch (NullPointerException e){
 					e.printStackTrace();
 					throw new RuntimeException("monitored mode " + mode +
@@ -97,7 +101,9 @@ public class ExperiencedTripsWriter {
 			}
 			bw.write(sep + trip.getMode2inVehicleOrMoveTime().get("Other") + sep + 
 					trip.getMode2inVehicleOrMoveDistance().get("Other") + sep +
-					trip.getMode2waitTime().get("Other") + sep + trip.getMode2numberOfLegs().get("Other"));
+					trip.getMode2waitTime().get("Other") + sep +
+					trip.getMode2maxPerLegWaitTime().get("Other") + sep +
+					trip.getMode2numberOfLegs().get("Other"));
 			bw.newLine();
 		} catch (IOException e1) {
 			e1.printStackTrace();
