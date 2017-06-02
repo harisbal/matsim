@@ -55,7 +55,7 @@ public class RunNullfallAsVariableAccess {
 //		String outputDirectory = FilePaths.PATH_BASE_DIRECTORY + FilePaths.PATH_OUTPUT_BERLIN__10PCT
 		
 		// ScenarioUtils.loadScenario(config) searches files starting at the directory where the config is located
-		config.network().setInputFile("../../../../" + FilePaths.PATH_NETWORK_BERLIN__10PCT);
+		config.network().setInputFile("../../../../" + FilePaths.PATH_NETWORK_BERLIN__10PCT_DRT_ACCESS_LOOPS);
 		config.plans().setInputFile("../../../../" + FilePaths.PATH_POPULATION_BERLIN__10PCT_FILTERED);
 //		config.plans().setInputFile("../../../../" + "data/input/Berlin10pct/mod/population.10pct.filtered.6Agents.xml");
 //		config.plans().setInputFile("../../../../" + "data/output/Berlin10pct/DRT_20_Cap1/ITERS/it.0/0.plans.xml");
