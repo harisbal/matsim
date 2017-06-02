@@ -1,10 +1,9 @@
 /* *********************************************************************** *
  * project: org.matsim.*
- * ProgressiveTravelTimeCalculator.java
  *                                                                         *
  * *********************************************************************** *
  *                                                                         *
- * copyright       : (C) 2007 by the members listed in the COPYING,        *
+ * copyright       : (C) 2017 by the members listed in the COPYING,        *
  *                   LICENSE and WARRANTY file.                            *
  * email           : info at matsim dot org                                *
  *                                                                         *
@@ -18,34 +17,33 @@
  *                                                                         *
  * *********************************************************************** */
 
-package org.matsim.core.trafficmonitoring;
+package playground.ikaddoura.decongestion;
+
+import org.matsim.core.controler.AbstractModule;
+
+import playground.ikaddoura.decongestion.data.DecongestionInfo;
+import playground.ikaddoura.decongestion.handler.DelayAnalysis;
+import playground.ikaddoura.decongestion.handler.PersonVehicleTracker;
 
 /**
- * @author glaemmel
- */
-public final class PessimisticTravelTimeAggregator extends AbstractTravelTimeAggregator {
+* @author ikaddoura
+*/
 
-	public PessimisticTravelTimeAggregator(int numSlots,int travelTimeBinSize) {
-		super(numSlots,travelTimeBinSize);
-	}
-
+public class DecongestionAnalysisModule extends AbstractModule {
+	
 	@Override
-	 void addTravelTime(TravelTimeData travelTimeData,
-			double enterTime, double leaveTime) {
+	public void install() {
+				
+		this.bind(DecongestionInfo.class).asEagerSingleton();		
+		
+		this.bind(DelayAnalysis.class).asEagerSingleton();				
+		this.addEventHandlerBinding().to(DelayAnalysis.class);
 
-		double ttime = leaveTime - enterTime;
-		for (int slot = getTimeSlotIndex(enterTime); slot <= getTimeSlotIndex(leaveTime); slot++ ){
-			travelTimeData.addTravelTime(slot, ttime);
-		}		
-	}
-
-	@Override
-	 void addStuckEventTravelTime(TravelTimeData travelTimeData,
-			double enterTime, double stuckEventTime) {
-		double ttime = Double.POSITIVE_INFINITY;
-		for (int slot = getTimeSlotIndex(enterTime); slot <= getTimeSlotIndex(stuckEventTime); slot++ ){
-			travelTimeData.addTravelTime(slot, ttime);
-		}
+		this.bind(PersonVehicleTracker.class).asEagerSingleton();
+		this.addEventHandlerBinding().to(PersonVehicleTracker.class);
+		
+		this.addControlerListenerBinding().to(DecongestionControlerListener.class);
 	}
 
 }
+

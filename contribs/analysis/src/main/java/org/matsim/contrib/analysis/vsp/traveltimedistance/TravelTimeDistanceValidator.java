@@ -1,10 +1,9 @@
 /* *********************************************************************** *
  * project: org.matsim.*
- * ProgressiveTravelTimeCalculator.java
  *                                                                         *
  * *********************************************************************** *
  *                                                                         *
- * copyright       : (C) 2007 by the members listed in the COPYING,        *
+ * copyright       : (C) 2017 by the members listed in the COPYING,        *
  *                   LICENSE and WARRANTY file.                            *
  * email           : info at matsim dot org                                *
  *                                                                         *
@@ -18,34 +17,26 @@
  *                                                                         *
  * *********************************************************************** */
 
-package org.matsim.core.trafficmonitoring;
+/**
+ * 
+ */
+package org.matsim.contrib.analysis.vsp.traveltimedistance;
+
+import org.matsim.core.utils.collections.Tuple;
 
 /**
- * @author glaemmel
+ * @author  jbischoff
+ * An Interface for Traveltime Validation
  */
-public final class PessimisticTravelTimeAggregator extends AbstractTravelTimeAggregator {
 
-	public PessimisticTravelTimeAggregator(int numSlots,int travelTimeBinSize) {
-		super(numSlots,travelTimeBinSize);
-	}
-
-	@Override
-	 void addTravelTime(TravelTimeData travelTimeData,
-			double enterTime, double leaveTime) {
-
-		double ttime = leaveTime - enterTime;
-		for (int slot = getTimeSlotIndex(enterTime); slot <= getTimeSlotIndex(leaveTime); slot++ ){
-			travelTimeData.addTravelTime(slot, ttime);
-		}		
-	}
-
-	@Override
-	 void addStuckEventTravelTime(TravelTimeData travelTimeData,
-			double enterTime, double stuckEventTime) {
-		double ttime = Double.POSITIVE_INFINITY;
-		for (int slot = getTimeSlotIndex(enterTime); slot <= getTimeSlotIndex(stuckEventTime); slot++ ){
-			travelTimeData.addTravelTime(slot, ttime);
-		}
-	}
-
+/**
+ * 
+ */
+public interface TravelTimeDistanceValidator {
+	/**
+	 * 
+	 * @param trip the trip to validate
+	 * @return a tuple of validated TravelTime and Distance
+	 */
+	Tuple<Double,Double> getTravelTime(CarTrip trip);
 }
